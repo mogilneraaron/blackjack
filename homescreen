@@ -1,0 +1,33 @@
+close all
+clc
+clear 
+fprintf("Blackjack Time!\n")
+cont = true;
+keyPressed = input("Press any key to start playing!", 's');
+keyPressed = input("Press r to review the rules, press n to move on", "s");
+% these are inputs so that the game is paced better and the text doesnt hit
+% you all at once
+while keyPressed ~= 'r' && keyPressed ~= "n"
+    keyPressed = input('please enter either r or n!', 's');
+end
+%doesn't let the user proceed untill they input n or s
+if keyPressed == 'r'
+    fprintf('You are to be dealt two cards face up, and the dealer is dealt\n two cards with one being face down. Number cards are worth the number displayed\n, all face cards are worth 10, and aces are worth 1 or 11 based on what hand you have.\n Your objective is to have a hand closer to 21 than the dealer without going over 21.\n You can take as many cards as you want until your total goes over 21, and you can stop\n whenever you want as well.\n When you are done, the dealer reveals their own card and continue to draw until they have at least 17.\n The higher total wins.\n')
+end
+%prints the rules if the user asks for the rules
+keyPressed = input("Press any key to start playing!", 's');
+while cont == true
+%while loops allows for the user to continue playing until they dont want
+%to anymore
+blackjackFunction()
+%calls the actual game of blackjack
+keyPressed = input("press c to play another or press e to exit", "s");
+while keyPressed ~= 'e' && keyPressed ~= "c"
+    keyPressed = input('please enter either e or c!', 's');
+%doesnt let the user proceed unless they press either e or c
+end
+if keyPressed == "e" 
+    cont = false;
+    %this causes the while loop to break if the user presses e
+end
+end
