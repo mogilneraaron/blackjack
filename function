@@ -1,0 +1,225 @@
+function [] = blackjackFunction()
+clc
+clear
+close all
+    function [val] = newVal(currentVal, card, i)
+%     does the same thing as initialval except it adds it to the already
+%     existing sum
+    card = card(i) - 20;
+    while card > 13
+        card = card - 13;
+    end
+    if card > 10
+        card = 10;
+    end
+    if card == 1
+        if currentVal < 11
+            card = 11;
+        else
+            card = 1;
+        end
+    end
+    val = currentVal + card;
+end
+function[same] = sameCheck(card, i)
+%     makes sure a new card isnt the same as any of the other cards in the
+%     series
+    for q = 1:(i-1)
+        if card(i) == card(q)
+            same = true;
+            break
+        else
+            same = false;
+        end
+    end
+end
+function [card] = cardVal(x)
+%function given a number 1-52 and outputs a number that will be used to
+%find it's number on the sprite sheet
+for i = 1:52
+    if x == i
+        card = i + 20;
+    end
+end
+end
+function [val] = initialVal(cards)
+firstCard = cards(1) - 20;
+secondCard = cards(2) - 20;
+%removes the 20 that was added to the card values for their sprites
+while firstCard > 13
+    firstCard = firstCard - 13;
+end
+%creates one number of any card value regardless of the suit
+while secondCard > 13
+    secondCard = secondCard - 13;
+end
+if firstCard > 10
+    firstCard = 10;
+end
+%makes all face cards have a value of 10
+if secondCard > 10
+    secondCard = 10;
+end
+if firstCard == 1
+    firstCard = 11;
+end
+%if the first card is an ace, we want it to be 11
+if firstCard == 11 && secondCard == 1
+    secondCard = 1;
+else
+%if the second card is an ace and the first is as well, we want it to equal
+%1 so we don't automatically bust
+if secondCard == 1
+    secondCard = 11;
+end
+end
+val = firstCard + secondCard;
+%adds the two card values together to return our initial sum
+end
+fprintf("Blackjack Time!\n")
+warning("off", "Images:initSize:adjustingMag")
+%turns off a warning that i was getting often that is irrelevant
+playerLose = false;
+dealerLose = false;
+playerCard(1) = cardVal(randi(52));
+playerCard(2) = cardVal(randi(52));
+% setting the first two cards that the player gets based on a random number
+% of a deck 1-52
+while playerCard(2) == playerCard(1)
+%     this makes sure the user isnt given 2 of the same card
+    playerCard(2) = cardVal(randi(52));
+end
+game_scene = simpleGameEngine('retro_cards.png', 16, 16, 10, [200, 0, 0]);
+% initialises a variable to use as the scene
+dealerCard(1) = cardVal(randi(52));
+% since we are only shown the first card of the dealer's hand, this is that
+% card
+backG = [2 2 11 11 11 11 11 11 11 11 11 11 11 11; 2 2 11 11 11 11 11 11 11 11 11 11 11 11];
+% creates a matrix of sprite values to be used as a background image
+tableG = [dealerCard(1) 3 11 11 11 11 11 11 11 11 11 11 11 11; playerCard(1) playerCard(2) 11 11 11 11 11 11 11 11 11 11 11 11 ];
+% creates a matrix of sprite values to be used as a foreground image(the
+% cards and their outlines. The card values are there to show the card that
+% the user or dealer has.
+drawScene(game_scene, backG, tableG)
+%draws the scene
+movegui('north')
+initial = initialVal(playerCard);
+%determines the initial sum of the values of the users cards
+fprintf("your current total is %.f \n", initial)
+userChoice = input("If you want another card, type y, if you would like to stay, press n", "s");
+while userChoice ~= 'y' && userChoice ~= 'n'
+    input("please input one of the stated choices", "s")
+end
+k = 3;
+%this value is used to store the next card after the first two
+currVal = initial;
+% stores the current sum as the initial one because we will be using this
+% variable for the future
+close all
+while userChoice == 'y'
+%     continues the to add cards until the user types in something other
+%     than y
+    playerCard(k) = cardVal(randi(52));
+%     uses k to create the value of the next card in the series
+    while sameCheck(playerCard, k)
+%         makes sure the current card isnt the same as the other cards in
+%         the series
+        playerCard(k) = cardVal(randi(52));
+    end
+    close all
+    backG(2,k) = 2;
+%     prepares the slot for the background to have a new card be placed on
+%     the player's series
+    tableG(2, k) = playerCard(k);
+%     puts a new card on the player's series
+    drawScene(game_scene, backG, tableG)
+%     draws the scene with the new cards
+    currVal = newVal(currVal, playerCard, k);
+%     updates our sum with the new one after we got a new card
+    if currVal > 21
+        fprintf('You are over 21! You lose!\n')
+        playerLose = true;
+        break
+%         breaks the game loop immediately if the player goes over 21
+    end
+    fprintf("your current total is %.f\n", currVal)
+    userChoice = input("If you want another card, type y, if you would like to stay, press n", "s");
+    while userChoice ~= 'y' && userChoice ~= 'n'
+    input("please input one of the stated choices", "s")
+    end
+%     doesn't allow the player to proceed until they press y or n
+    k = k + 1;
+%     allows for the number used for the current card in the series to be
+%     updated
+end
+dealerCard(2) = cardVal(randi(52));
+% sets the dealer's second card
+while dealerCard(2) == dealerCard(1)
+%     assures the dealer's first card is different from the second one
+    dealerCard(2) = cardVal(randi(52));
+end
+k = 3;
+% resets the value used to store the next card after the first two for the
+% dealer's cards
+backG(1, 2) = 2;
+% prepares the background for the reveal of the dealer's second card
+tableG(1,2) = dealerCard(2);
+% reveals the dealer's second card
+drawScene(game_scene, backG, tableG)
+% updates table for dealer's second card
+dealerSum = initialVal(dealerCard);
+% creates an initial sum for the dealer's cards
+if playerLose == false
+%     doesn't run the loop if the player already lost
+    while (dealerSum < 17)
+%         continues to deal the dealer new cards until their sum is at least 17
+    fprintf('The dealer has a sum below 17. He will draw again.\n')
+    dealerCard(k) = cardVal(randi(52));
+%     determines the value of the dealer's next card using k
+    while sameCheck(dealerCard, k)
+%         assures the next card isn't the same as one of the dealer's other
+%         cards
+        dealerCard(k) = cardVal(randi(52));
+    end
+    dealerSum = newVal(dealerSum, dealerCard, k);
+%     creates a new sum for the dealer's cards
+    backG(1, k) = 2;
+%     prepares the backrgound for the dealer's next card
+    tableG(1, k) = dealerCard(k);
+%     places the new card in on the table
+    drawScene(game_scene, backG, tableG)
+%     updates the table with the dealer's new card
+    if dealerSum > 21
+    fprintf('The dealer is over 21! You win!\n')
+    dealerLose = true;
+    break
+    end
+%     breaks the loop and tells the user they win if the dealer busts
+    k = k + 1;
+%     updates the number used to determine the current card in the series
+    end
+end
+fprintf('The dealer has a sum of %.f\n', dealerSum)
+if ~playerLose && ~dealerLose
+%     only checks the score of the user and dealer if neither of them
+%   got over 21
+    if currVal > dealerSum
+        fprintf("you are victorious!\n")
+%         if you have a higher sum than the dealer, you win
+    elseif currVal == dealerSum
+        fprintf('You tied!\n')
+%         if you have the same sum as the dealer, you tie
+    else
+        fprintf('You lost!\n')
+%         if you have a sum less than the dealer's, you lose
+    end
+end
+userChoice = input("press any key to continue", "s");
+% gives the user a break before exiting blackjack
+end
+
+
+    
+
+
+
